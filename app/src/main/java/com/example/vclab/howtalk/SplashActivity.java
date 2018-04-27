@@ -33,7 +33,7 @@ public class SplashActivity extends AppCompatActivity {
                 .setDeveloperModeEnabled(BuildConfig.DEBUG) // 빌드를 여러번 하기 위함
                 .build();
         mFirebaseRemoteConfig.setConfigSettings(configSettings);
-        mFirebaseRemoteConfig.setDefaults(R.xml.default_config);
+        mFirebaseRemoteConfig.setDefaults(R.xml.default_config);  // 적용될 매개변수들을 가지고 있는 값들
 
 
         // cacheExpirationSeconds is set to cacheExpiration here, indicating the next fetch request
@@ -56,13 +56,14 @@ public class SplashActivity extends AppCompatActivity {
                 });
     }
     void displayMessage(){
+        // 매개변수 웹에서 받아오는 변수.
         String splash_background = mFirebaseRemoteConfig.getString("splash_background");
         boolean caps = mFirebaseRemoteConfig.getBoolean("splash_message_caps");
         String splash_message = mFirebaseRemoteConfig.getString("splash_message");
 
         splashactivity_linearlayout.setBackgroundColor(Color.parseColor(splash_background));
 
-        if(caps){
+        if(caps){  // caps가 true 일 경우 서버 점검 등의 이유로 앱의 실행을 중지 .
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(splash_message).setPositiveButton("확인", new DialogInterface.OnClickListener() {
                 @Override
