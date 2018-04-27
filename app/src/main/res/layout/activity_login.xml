@@ -29,9 +29,10 @@
         android:layout_height="wrap_content">
         <EditText
             android:id="@+id/loginActivity_edittext_password"
-            android:hint="Password"
+            android:inputType="textPassword"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:hint="Password"/>
     </android.support.design.widget.TextInputLayout>
 
     <Button
