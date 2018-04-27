@@ -1,6 +1,7 @@
 package com.example.vclab.howtalk;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -73,6 +74,8 @@ public class SplashActivity extends AppCompatActivity {
             });
 
             builder.create().show();
+        }else{
+            startActivity(new Intent(this, LoginActivity.class));
         }
     }
 
