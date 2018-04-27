@@ -1,35 +1,35 @@
 {
   "project_info": {
-    "project_number": "793438143665",
-    "firebase_url": "https://howtalk-96784.firebaseio.com",
-    "project_id": "howtalk-96784",
-    "storage_bucket": "howtalk-96784.appspot.com"
+    "project_number": "425762783241",
+    "firebase_url": "https://howtalk2-e94b2.firebaseio.com",
+    "project_id": "howtalk2-e94b2",
+    "storage_bucket": "howtalk2-e94b2.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:793438143665:android:3bb3099f2a5612b3",
+        "mobilesdk_app_id": "1:425762783241:android:48ec880d9042ba8c",
         "android_client_info": {
-          "package_name": "com.example.vclab.howtalk"
+          "package_name": "com.example.vclab.howtalk2"
         }
       },
       "oauth_client": [
         {
-          "client_id": "793438143665-4kf97nujuru2ujgns5svk3coq4ogu7hh.apps.googleusercontent.com",
+          "client_id": "425762783241-kg6d3m4ulvd63vecgdbbjsercr4jg5ga.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.vclab.howtalk",
+            "package_name": "com.example.vclab.howtalk2",
             "certificate_hash": "d752a02f9f14fd5803d0cbbe4baf262326096f31"
           }
         },
         {
-          "client_id": "793438143665-72mc2m5c6u2iugpne45cd93p3p6ulv56.apps.googleusercontent.com",
+          "client_id": "425762783241-ia6e2u3n1mqspu05g0adsvkkk8cphu54.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCgNfO2ckNWlxtMtC1RNeIuAo-1gCP1320"
+          "current_key": "AIzaSyDXJcHDXgwiuc9x9cP2HKVFWOvsNUktSXM"
         }
       ],
       "services": {
@@ -40,7 +40,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "793438143665-72mc2m5c6u2iugpne45cd93p3p6ulv56.apps.googleusercontent.com",
+              "client_id": "425762783241-ia6e2u3n1mqspu05g0adsvkkk8cphu54.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

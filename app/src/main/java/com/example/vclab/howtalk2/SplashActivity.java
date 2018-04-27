@@ -1,4 +1,4 @@
-package com.example.vclab.howtalk;
+package com.example.vclab.howtalk2;
 
 import android.content.DialogInterface;
 import android.content.Intent;
