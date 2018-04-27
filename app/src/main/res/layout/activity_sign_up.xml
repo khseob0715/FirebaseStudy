@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    tools:context="com.example.vclab.howtalk.SignUpActivity">
+    tools:context="com.example.vclab.howtalk2.SignUpActivity">
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
