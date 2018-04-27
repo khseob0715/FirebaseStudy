@@ -41,7 +41,9 @@
         android:layout_height="wrap_content" />
 
     <Button
+        android:background="#ffffff"
         android:text="Sign In"
+        android:layout_marginTop="5dp"
         android:id="@+id/loginActivity_button_sign"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

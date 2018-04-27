@@ -8,6 +8,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -25,6 +26,8 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN); // FullScreen 적용  // 상태바가 없어짐.
+
 
         splashactivity_linearlayout = (LinearLayout) findViewById(R.id.splashactivity_linearlayout);
 
@@ -74,7 +77,11 @@ public class SplashActivity extends AppCompatActivity {
             });
 
             builder.create().show();
+
         }else{
+            // 기존에는 Handler를 이용해 2초 정도 지난 뒤에 전환되게 했다면,
+            // 이제는 서버와 연결되어 있는 상태이므로 서버와 연결이 완료되어 값을 읽어 왔을 경우 splash 이미지가 넘어가는 형태이다.
+
             startActivity(new Intent(this, LoginActivity.class));
         }
     }
