@@ -90,7 +90,14 @@ public class SignUpActivity extends AppCompatActivity {
                                         userModel.userName = name.getText().toString();
                                         userModel.profileImageUrl  = imageUrl;
 
-                                        FirebaseDatabase.getInstance().getReference().child("users").child(uid).setValue(userModel);
+                                        FirebaseDatabase.getInstance().getReference().child("users").child(uid).setValue(userModel).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            // 제대로 데이터베이스에 저장이 되면, sign up activity가 종료됨.
+                                            // storage에 이미지 파일이 저장되어야 하므로 시간이 오래 소요 됨.
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                SignUpActivity.this.finish();
+                                            }
+                                        });
                                     }
                                 });
 
