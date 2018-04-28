@@ -4,15 +4,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.vclab.howtalk2.R;
 import com.example.vclab.howtalk2.model.ChatModel;
+import com.example.vclab.howtalk2.model.UserModel;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -68,7 +74,12 @@ public class MessageActivity extends AppCompatActivity {
                     ChatModel.Comment comment = new ChatModel.Comment();
                     comment.uid = uid;
                     comment.message = editText.getText().toString();
-                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").push().setValue(comment);
+                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").push().setValue(comment).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            editText.setText("");
+                        }
+                    });
                 }
 
 
@@ -100,9 +111,27 @@ public class MessageActivity extends AppCompatActivity {
     }
     class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         List<ChatModel.Comment> comments;
+        UserModel userModel;
         public RecyclerViewAdapter() {
             comments = new ArrayList<>();
 
+            //유저 정보를 가져오는 것.
+            FirebaseDatabase.getInstance().getReference().child("users").child(destinationUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    userModel = dataSnapshot.getValue(UserModel.class);
+                    getMessageList();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+        }
+        // message list를 전달받는 것.
+        void getMessageList(){
             FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -111,7 +140,9 @@ public class MessageActivity extends AppCompatActivity {
                     for(DataSnapshot item : dataSnapshot.getChildren()){
                         comments.add(item.getValue(ChatModel.Comment.class));
                     }
-                    notifyDataSetChanged(); // 데이터 갱신.
+                    notifyDataSetChanged(); // 데이터 갱신. // 메시지 갱신
+
+                    recyclerView.scrollToPosition(comments.size() - 1); // 맨 마지막 이동.
                 }
 
                 @Override
@@ -121,6 +152,7 @@ public class MessageActivity extends AppCompatActivity {
             });
         }
 
+
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             // xml 레이아웃 추가
@@ -129,9 +161,28 @@ public class MessageActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            // 데이터 바인딩
-            ((MessageViewHolder)holder).textView_message.setText(comments.get(position).message);
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {// 데이터 바인딩
+            MessageViewHolder messageViewHolder = ((MessageViewHolder)holder);
+
+            if(comments.get(position).uid.equals(uid)){ // 내가 쓴 말풍선과 상대방이 쓴 말풍선을 나눈 것.
+                messageViewHolder.textView_message.setText(comments.get(position).message);
+                messageViewHolder.textView_message.setBackgroundResource(R.drawable.rightbubble);
+                messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE);  // 내꺼 프로필은 감추기
+                messageViewHolder.linearLayout_main.setGravity(Gravity.RIGHT);
+            }else{ // 이건 상대방이 보낸 메시지
+                Glide.with(holder.itemView.getContext())
+                        .load(userModel.profileImageUrl)
+                        .apply(new RequestOptions().circleCrop())
+                        .into(messageViewHolder.imageView);
+                messageViewHolder.textView_name.setText(userModel.userName);
+                messageViewHolder.linearLayout_destination.setVisibility(View.VISIBLE);
+                messageViewHolder.textView_message.setBackgroundResource(R.drawable.leftbubble);
+                messageViewHolder.textView_message.setText(comments.get(position).message);
+                messageViewHolder.textView_message.setTextSize(25);
+                messageViewHolder.linearLayout_main.setGravity(Gravity.LEFT);
+            }
+
+
         }
 
         @Override
@@ -141,10 +192,19 @@ public class MessageActivity extends AppCompatActivity {
 
         private class MessageViewHolder extends RecyclerView.ViewHolder {
             public TextView textView_message;
+            public TextView textView_name;
+            public ImageView imageView;
+            public LinearLayout linearLayout_destination;
+            public LinearLayout linearLayout_main;
+
 
             public MessageViewHolder(View view) {
                 super(view);
                 textView_message = (TextView)view.findViewById(R.id.messageitem_textview);
+                textView_name = (TextView)view.findViewById(R.id.message_textview_name);
+                imageView = (ImageView)view.findViewById(R.id.messageActivity_imageView_profile);
+                linearLayout_destination = (LinearLayout)view.findViewById(R.id.messageActivity_linearlayout_destination);
+                linearLayout_main = (LinearLayout)view.findViewById(R.id.messageItem_linearlayout_main);
             }
         }
     }
