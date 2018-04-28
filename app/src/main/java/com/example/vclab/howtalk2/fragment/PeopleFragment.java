@@ -73,7 +73,7 @@ public class PeopleFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
             Glide.with
                     (holder.itemView.getContext())
                     .load(userModels.get(position).profileImageUrl)
@@ -85,6 +85,7 @@ public class PeopleFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(view.getContext(), MessageActivity.class);
+                    intent.putExtra("destinationUid",userModels.get(position).uid);  // 채팅 상대 uid 전달
                     ActivityOptions activityOptions = ActivityOptions.makeCustomAnimation(view.getContext(), R.anim.fromright, R.anim.toleft);
                     startActivity(intent,activityOptions.toBundle());
                     // 프로필 버튼 눌렀을때 액티비티 전환
