@@ -14,6 +14,7 @@ import android.widget.ImageView;
 
 import com.example.vclab.howtalk2.model.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -89,13 +90,11 @@ public class SignUpActivity extends AppCompatActivity {
                                         final UserModel userModel = new UserModel();
                                         userModel.userName = name.getText().toString();
                                         userModel.profileImageUrl  = imageUrl;
-                                        userModel.uid = FirebaseAuth.getInstance().getCurrentUser().toString();
+                                        userModel.uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                                        FirebaseDatabase.getInstance().getReference().child("users").child(uid).setValue(userModel).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        FirebaseDatabase.getInstance().getReference().child("users").child(uid).setValue(userModel).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
-                                            // 제대로 데이터베이스에 저장이 되면, sign up activity가 종료됨.
-                                            // storage에 이미지 파일이 저장되어야 하므로 시간이 오래 소요 됨.
-                                            public void onComplete(@NonNull Task<Void> task) {
+                                            public void onSuccess(Void aVoid) {
                                                 SignUpActivity.this.finish();
                                             }
                                         });
@@ -110,6 +109,7 @@ public class SignUpActivity extends AppCompatActivity {
         });
 
     }
+
     //결과값이 넘어와서
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

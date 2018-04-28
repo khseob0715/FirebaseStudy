@@ -18,6 +18,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.vclab.howtalk2.R;
 import com.example.vclab.howtalk2.chat.MessageActivity;
 import com.example.vclab.howtalk2.model.UserModel;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -48,13 +49,19 @@ public class PeopleFragment extends Fragment {
         List<UserModel> userModels;
         public PeopleFragmentRecyclerViewAdapter() { // DB에 접근할 생성자
             userModels = new ArrayList<>();
+            final String myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             FirebaseDatabase.getInstance().getReference().child("users").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     // 처음 넘어오는 데이터  // ArrayList로 넘어옴.
                     userModels.clear();
                     for(DataSnapshot snapshot :dataSnapshot.getChildren()) {
-                        userModels.add(snapshot.getValue(UserModel.class));
+
+                        UserModel userModel = snapshot.getValue(UserModel.class);
+                        if(userModel.uid.equals(myUid)){
+                            continue; // 내 uid면 넘어감.
+                        }
+                        userModels.add(userModel);
                     }
                     notifyDataSetChanged();  // 데이터가 쌓인 후 새로고침과 비슷한 기능.
                 }
