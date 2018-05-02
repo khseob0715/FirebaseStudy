@@ -55,7 +55,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setPriority(Notification.PRIORITY_HIGH)       // 이걸 해야 헤드업이 됨.
                         .setContentIntent(pendingIntent);
 
-
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }

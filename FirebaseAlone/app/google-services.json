@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "840545853609",
+    "firebase_url": "https://fir-alone.firebaseio.com",
+    "project_id": "fir-alone",
+    "storage_bucket": "fir-alone.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840545853609:android:5a7d6c51a3628d6e",
+        "android_client_info": {
+          "package_name": "com.aiden.alone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "840545853609-gi8voip0p0afl86nudvpfp8s63sognea.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aiden.alone",
+            "certificate_hash": "8c80ce01dfa0cc5086c506fee5eb9f4f77384495"
+          }
+        },
+        {
+          "client_id": "840545853609-8hf2ji19ls4vf475iqplfn40kfbguihr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfinlIbkGO4R-zP57meeVv6IvpStdD4CM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "840545853609-8hf2ji19ls4vf475iqplfn40kfbguihr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
