@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
 
+import com.example.vclab.howtalk2.fragment.AccountFragment;
 import com.example.vclab.howtalk2.fragment.ChatFragment;
 import com.example.vclab.howtalk2.fragment.PeopleFragment;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
                         getFragmentManager().beginTransaction().replace(R.id.mainactivity_framelayout, new ChatFragment()).commit();
                         return true;
                     case R.id.action_account:
+                        getFragmentManager().beginTransaction().replace(R.id.mainactivity_framelayout, new AccountFragment()).commit();
                         break;
 
                 }

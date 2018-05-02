@@ -81,7 +81,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();  // 구글 로그인 계정을 받는다.
                 firebaseAuthWithGoogle(account); // 사용자 로그인 완료 이후 GoogleSignInAccount로 부터 ID 토큰을 받아와
-                // Firebase 사용자 인증 정보로 교환하고, Firebase 사용자 인증 정보를 사용해 Firebase에 인증합니다. 
+                // Firebase 사용자 인증 정보로 교환하고, Firebase 사용자 인증 정보를 사용해 Firebase에 인증합니다.
+                Intent mainactivity = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(mainactivity);
             } else {
                 // Google Sign In failed, update UI appropriately
                 // ...
