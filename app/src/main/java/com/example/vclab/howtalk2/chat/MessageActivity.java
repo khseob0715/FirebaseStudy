@@ -107,13 +107,19 @@ public class MessageActivity extends AppCompatActivity {
         checkChatRoom();
     }
 
-    void sendGcm(){
+    void sendGcm(){   // Google Cloud Message, 구글에서 푸쉬 메시지를 보낼 때 사용하는 무료 서비스.
         Gson gson = new Gson();
 
+        String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         NotificationModel notificationModel = new NotificationModel();
         notificationModel.to = destinationUserModel.pushToken;
-        notificationModel.notification.title = "보낸이 아이디";
+        notificationModel.notification.title = userName;
         notificationModel.notification.text = editText.getText().toString();
+        notificationModel.data.title = userName;
+        notificationModel.data.text = editText.getText().toString();
+
+        // 푸시를 받을때 데이터를 파싱하는 것을 만들어야 됨.
+        // 파이어 베이스 메시징 서비스가 필요함.
 
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf8"),gson.toJson(notificationModel));
         // postman에서 body의 부분을 만들었음
