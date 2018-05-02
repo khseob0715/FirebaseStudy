@@ -98,6 +98,10 @@ public class PeopleFragment extends Fragment {
                     // 프로필 버튼 눌렀을때 액티비티 전환
                 }
             });
+
+            if(userModels.get(position).comment != null) {
+                ((CustomViewHolder) holder).textView_comment.setText(userModels.get(position).comment);
+            }
         }
 
         @Override
@@ -109,11 +113,13 @@ public class PeopleFragment extends Fragment {
         private class CustomViewHolder extends RecyclerView.ViewHolder {
             public ImageView imageView;
             public TextView textView;
+            public TextView textView_comment;
 
             public CustomViewHolder(View view) {
                 super(view);
                 imageView = (ImageView)view.findViewById(R.id.frienditem_imageView);
                 textView = (TextView)view.findViewById(R.id.frienditem_textView);
+                textView_comment = (TextView)view.findViewById(R.id.frienditem_textView_commnet);
             }
         }
     }
