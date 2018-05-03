@@ -66,6 +66,8 @@ public class MessageActivity extends AppCompatActivity {
 
     private DatabaseReference databaseReference;
     private ValueEventListener valueEventListener;
+
+    int peopleCount = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -210,21 +212,28 @@ public class MessageActivity extends AppCompatActivity {
 
                     for(DataSnapshot item : dataSnapshot.getChildren()){
                         String key = item.getKey();
-                        ChatModel.Comment comment = item.getValue(ChatModel.Comment.class);
-                        comment.readUsers.put(uid,true);  // 읽었다는 태그를 달아줌.
-                        readUsersMap.put(key, comment);
-                        comments.add(comment);
+                        ChatModel.Comment comment_origin = item.getValue(ChatModel.Comment.class);
+                        ChatModel.Comment comment_modify = item.getValue(ChatModel.Comment.class);
+
+                        comment_modify.readUsers.put(uid,true);  // 읽었다는 태그를 달아줌.
+                        readUsersMap.put(key, comment_modify);
+                        comments.add(comment_origin);
                     }
 
-                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments")
-                            .updateChildren(readUsersMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            notifyDataSetChanged(); // 데이터 갱신. // 메시지 갱신
+                    if(comments.get(comments.size()-1).readUsers.containsKey(uid)){
+                        FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments")
+                                .updateChildren(readUsersMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                notifyDataSetChanged(); // 데이터 갱신. // 메시지 갱신
+                                recyclerView.scrollToPosition(comments.size() - 1); // 맨 마지막 이동.
+                            }
+                        });
+                    }else{
+                        notifyDataSetChanged(); // 데이터 갱신. // 메시지 갱신
 
-                            recyclerView.scrollToPosition(comments.size() - 1); // 맨 마지막 이동.
-                        }
-                    });
+                        recyclerView.scrollToPosition(comments.size() - 1); // 맨 마지막 이동.
+                    }
 
                 }
 
@@ -252,6 +261,8 @@ public class MessageActivity extends AppCompatActivity {
                 messageViewHolder.textView_message.setBackgroundResource(R.drawable.rightbubble);
                 messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE);  // 내꺼 프로필은 감추기
                 messageViewHolder.linearLayout_main.setGravity(Gravity.RIGHT);
+                setReadCount(position, messageViewHolder.textView_readCounter_left);
+
             }else{ // 이건 상대방이 보낸 메시지
                 Glide.with(holder.itemView.getContext())
                         .load(destinationUserModel.profileImageUrl)
@@ -263,6 +274,8 @@ public class MessageActivity extends AppCompatActivity {
                 messageViewHolder.textView_message.setText(comments.get(position).message);
                 messageViewHolder.textView_message.setTextSize(25);
                 messageViewHolder.linearLayout_main.setGravity(Gravity.LEFT);
+
+                setReadCount(position, messageViewHolder.textView_readCounter_right);
             }
             long unixTime = (long)comments.get(position).timestamp;
             Date date = new Date(unixTime);
@@ -271,6 +284,39 @@ public class MessageActivity extends AppCompatActivity {
             messageViewHolder.textView_timestamp.setText(time);
 
         }
+
+        void setReadCount(final int position, final TextView textView){
+            if(peopleCount == 0) {
+                FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Map<String, Boolean> users = (Map<String, Boolean>) dataSnapshot.getValue();
+                        peopleCount = users.size();
+                        int count = peopleCount - comments.get(position).readUsers.size();
+                        if (count > 0) {
+                            textView.setVisibility(View.VISIBLE);
+                            textView.setText(String.valueOf(count));
+                        } else {
+                            textView.setVisibility(View.INVISIBLE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }else{
+                int count = peopleCount - comments.get(position).readUsers.size();
+                if (count > 0) {
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText(String.valueOf(count));
+                } else {
+                    textView.setVisibility(View.INVISIBLE);
+                }
+            }
+        }
+
 
         @Override
         public int getItemCount() {
@@ -284,7 +330,8 @@ public class MessageActivity extends AppCompatActivity {
             public LinearLayout linearLayout_destination;
             public LinearLayout linearLayout_main;
             public TextView textView_timestamp;
-
+            public TextView textView_readCounter_left;
+            public TextView textView_readCounter_right;
 
             public MessageViewHolder(View view) {
                 super(view);
@@ -294,6 +341,8 @@ public class MessageActivity extends AppCompatActivity {
                 linearLayout_destination = (LinearLayout)view.findViewById(R.id.messageActivity_linearlayout_destination);
                 linearLayout_main = (LinearLayout)view.findViewById(R.id.messageItem_linearlayout_main);
                 textView_timestamp = (TextView)view.findViewById(R.id.messageItem_textview_timestamp);
+                textView_readCounter_left = (TextView)view.findViewById(R.id.messageItem_textview_readCounter_left);
+                textView_readCounter_right = (TextView)view.findViewById(R.id.messageItem_textview_readCounter_right);
             }
         }
     }
