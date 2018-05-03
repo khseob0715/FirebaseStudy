@@ -1,6 +1,7 @@
 package com.example.vclab.howtalk2.chat;
 
 import android.icu.text.SimpleDateFormat;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,10 +22,13 @@ import com.example.vclab.howtalk2.R;
 import com.example.vclab.howtalk2.model.ChatModel;
 import com.example.vclab.howtalk2.model.NotificationModel;
 import com.example.vclab.howtalk2.model.UserModel;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
@@ -34,7 +38,9 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -57,6 +63,9 @@ public class MessageActivity extends AppCompatActivity {
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm");
     private UserModel destinationUserModel;
+
+    private DatabaseReference databaseReference;
+    private ValueEventListener valueEventListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -191,17 +200,32 @@ public class MessageActivity extends AppCompatActivity {
         }
         // message list를 전달받는 것.
         void getMessageList(){
-            FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").addValueEventListener(new ValueEventListener() {
+            databaseReference = FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments");
+            valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     comments.clear();  // 서버에서는 모든 데이터를 보내기 때문에 이를 쓰지 않으면 이전에 보낸 값이 계속 쌓인다.
 
-                    for(DataSnapshot item : dataSnapshot.getChildren()){
-                        comments.add(item.getValue(ChatModel.Comment.class));
-                    }
-                    notifyDataSetChanged(); // 데이터 갱신. // 메시지 갱신
+                    Map<String, Object> readUsersMap = new HashMap<>();
 
-                    recyclerView.scrollToPosition(comments.size() - 1); // 맨 마지막 이동.
+                    for(DataSnapshot item : dataSnapshot.getChildren()){
+                        String key = item.getKey();
+                        ChatModel.Comment comment = item.getValue(ChatModel.Comment.class);
+                        comment.readUsers.put(uid,true);  // 읽었다는 태그를 달아줌.
+                        readUsersMap.put(key, comment);
+                        comments.add(comment);
+                    }
+
+                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments")
+                            .updateChildren(readUsersMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            notifyDataSetChanged(); // 데이터 갱신. // 메시지 갱신
+
+                            recyclerView.scrollToPosition(comments.size() - 1); // 맨 마지막 이동.
+                        }
+                    });
+
                 }
 
                 @Override
@@ -277,6 +301,7 @@ public class MessageActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         //super.onBackPressed();
+        databaseReference.removeEventListener(valueEventListener);
         finish();
         overridePendingTransition(R.anim.fromleft, R.anim.toright);
     }
