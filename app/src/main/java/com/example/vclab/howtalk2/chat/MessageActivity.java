@@ -164,7 +164,7 @@ public class MessageActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot item: dataSnapshot.getChildren()){
                     ChatModel chatModel = item.getValue(ChatModel.class); // chat room에 id가 있는지 없는지를 받아온 것.
-                    if(chatModel.users.containsKey(destinationUid)){
+                    if(chatModel.users.containsKey(destinationUid) && chatModel.users.size() == 2){
                         chatRoomUid = item.getKey(); // 이건 방 아이디
                         button.setEnabled(true);
                         recyclerView.setLayoutManager(new LinearLayoutManager(MessageActivity.this));
@@ -350,7 +350,10 @@ public class MessageActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         //super.onBackPressed();
-        databaseReference.removeEventListener(valueEventListener);
+        if(valueEventListener != null) {
+            databaseReference.removeEventListener(valueEventListener);  // 만약 valueEventListener가 null인데 이를 실행하면 에러가 발생한다.
+            // valueEventListener는 메시지가 없을때 null 값이 들어간다.
+        }
         finish();
         overridePendingTransition(R.anim.fromleft, R.anim.toright);
     }

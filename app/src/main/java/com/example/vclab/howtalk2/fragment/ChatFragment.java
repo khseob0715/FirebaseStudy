@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.vclab.howtalk2.R;
+import com.example.vclab.howtalk2.chat.GroupMessageActivity;
 import com.example.vclab.howtalk2.chat.MessageActivity;
 import com.example.vclab.howtalk2.model.ChatModel;
 import com.example.vclab.howtalk2.model.UserModel;
@@ -58,6 +59,8 @@ public class ChatFragment extends Fragment {
         private List<ChatModel> chatModels = new ArrayList<>();
         private ArrayList<String> destinationUsers = new ArrayList<>();
 
+        private List<String> keys = new ArrayList<>();
+
         public ChatRecyclerViewAdapter() {
             // 채팅 목록 가져올 생성자
             uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -70,6 +73,7 @@ public class ChatFragment extends Fragment {
                     for(DataSnapshot item : dataSnapshot.getChildren()){
                         // 데이터를 쌓아놓는다.
                         chatModels.add(item.getValue(ChatModel.class));
+                        keys.add(item.getKey());
                     }
                     notifyDataSetChanged(); // 새로 고침
 
@@ -124,24 +128,36 @@ public class ChatFragment extends Fragment {
 
             Map<String, ChatModel.Comment> commentMap = new TreeMap<>(Collections.reverseOrder());  // 메시지 내림차순 정렬, 마지막 메시지의 키 값을 가져옴.
             commentMap.putAll(chatModels.get(position).comments);
-            String lastMessageKey = (String)commentMap.keySet().toArray()[0];
-            customViewHolder.textView_last_message.setText(chatModels.get(position).comments.get(lastMessageKey).message);
+            if(commentMap.keySet().toArray().length > 0) { // 메시지가 있을때만 읽도록 하는 것.
+                String lastMessageKey = (String) commentMap.keySet().toArray()[0];
+                customViewHolder.textView_last_message.setText(chatModels.get(position).comments.get(lastMessageKey).message);
+
+
+                simpleDateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+                long uinxTime = (long) chatModels.get(position).comments.get(lastMessageKey).timestamp;
+                Date date = new Date(uinxTime);
+                customViewHolder.textView_timestamp.setText(simpleDateFormat.format(date));
+            }
 
             customViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(view.getContext(), MessageActivity.class);
-                    intent.putExtra("destinationUid", destinationUsers.get(position));
+                    Intent intent = null;
+                    if(chatModels.get(position).users.size() > 2) {
+                        intent = new Intent(view.getContext(), GroupMessageActivity.class);
+                        intent.putExtra("destinationRoom",keys.get(position));
+                    }else{
+                        intent = new Intent(view.getContext(), MessageActivity.class);
+                        intent.putExtra("destinationUid", destinationUsers.get(position));
+                    }
+
+
 
                     ActivityOptions activityOptions = ActivityOptions.makeCustomAnimation(view.getContext(), R.anim.fromright, R.anim.toleft);
                     startActivity(intent, activityOptions.toBundle());
                 }
             });
 
-            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
-            long uinxTime = (long) chatModels.get(position).comments.get(lastMessageKey).timestamp;
-            Date date = new Date(uinxTime);
-            customViewHolder.textView_timestamp.setText(simpleDateFormat.format(date));
         }
 
         @Override
