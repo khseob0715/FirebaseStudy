@@ -1,16 +1,15 @@
 package com.example.vclab.howtalk2.fragment;
 
 import android.app.ActivityOptions;
-import android.app.Fragment;
 import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,34 +27,22 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by VCLab on 2018-04-27.
- */
+public class SelectFriendActivity extends AppCompatActivity {
 
-public class PeopleFragment extends Fragment {
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_people, container, false);
-        RecyclerView recyclerView = (RecyclerView)view.findViewById(R.id.peoplefragment_recyclerview);
-        recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
-        recyclerView.setAdapter(new PeopleFragmentRecyclerViewAdapter());
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_select_friend);
 
-        FloatingActionButton floatingActionButton = (FloatingActionButton)view.findViewById(R.id.peoplefragment_floatingButton);
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(view.getContext(),SelectFriendActivity.class));
-            }
-        });
-        return view;
+        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.selectFriendActivity_recyclerview);
+        recyclerView.setAdapter(new SelectFriendPeopleFragmentRecyclerViewAdapter());
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    //RecyclerView를 추가할 클래스
-    class PeopleFragmentRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    class SelectFriendPeopleFragmentRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         List<UserModel> userModels;
-        public PeopleFragmentRecyclerViewAdapter() { // DB에 접근할 생성자
+        public SelectFriendPeopleFragmentRecyclerViewAdapter() { // DB에 접근할 생성자
             userModels = new ArrayList<>();
             final String myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             FirebaseDatabase.getInstance().getReference().child("users").addValueEventListener(new ValueEventListener() {
@@ -82,7 +69,7 @@ public class PeopleFragment extends Fragment {
         }
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_friend,parent,false);
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_friend_select,parent,false);
 
             return new CustomViewHolder(view);
         }
@@ -122,14 +109,15 @@ public class PeopleFragment extends Fragment {
             public ImageView imageView;
             public TextView textView;
             public TextView textView_comment;
+            public CheckBox checkBox;
 
             public CustomViewHolder(View view) {
                 super(view);
                 imageView = (ImageView)view.findViewById(R.id.frienditem_imageView);
                 textView = (TextView)view.findViewById(R.id.frienditem_textView);
                 textView_comment = (TextView)view.findViewById(R.id.frienditem_textView_commnet);
+                checkBox = (CheckBox)view.findViewById(R.id.frienditem_checkbox);
             }
         }
     }
-
 }
