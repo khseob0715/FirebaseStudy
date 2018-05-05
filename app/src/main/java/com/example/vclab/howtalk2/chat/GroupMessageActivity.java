@@ -20,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.vclab.howtalk2.R;
 import com.example.vclab.howtalk2.model.ChatModel;
+import com.example.vclab.howtalk2.model.NotificationModel;
 import com.example.vclab.howtalk2.model.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -30,12 +31,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class GroupMessageActivity extends AppCompatActivity {
 
@@ -54,6 +65,7 @@ public class GroupMessageActivity extends AppCompatActivity {
 
     List<ChatModel.Comment> comments = new ArrayList<>();
 
+    int peopleCount = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,12 +111,73 @@ public class GroupMessageActivity extends AppCompatActivity {
                         .child("comments").push().setValue(comment).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        editText.setText("");
+
+                        FirebaseDatabase.getInstance().getReference().child("chatrooms").child(destiantionRoom).child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override  // users에 접근하는 쿼리.
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                Map<String, Boolean> map = (Map<String, Boolean>) dataSnapshot.getValue();
+                                for(String item : map.keySet()){
+                                    if(item.equals(uid)){
+                                        continue;
+                                    }else{
+                                        sendGcm(users.get(item).pushToken);
+                                    }
+                                }
+                                editText.setText("");
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                     }
                 });
             }
         });
     }
+
+    void sendGcm(String pushToken){   // Google Cloud Message, 구글에서 푸쉬 메시지를 보낼 때 사용하는 무료 서비스.
+        Gson gson = new Gson();
+
+        String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        NotificationModel notificationModel = new NotificationModel();
+        notificationModel.to = pushToken;
+        notificationModel.notification.title = userName;
+        notificationModel.notification.text = editText.getText().toString();
+        notificationModel.data.title = userName;
+        notificationModel.data.text = editText.getText().toString();
+
+        // 푸시를 받을때 데이터를 파싱하는 것을 만들어야 됨.
+        // 파이어 베이스 메시징 서비스가 필요함.
+
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf8"),gson.toJson(notificationModel));
+        // postman에서 body의 부분을 만들었음
+
+        Request request = new Request.Builder()
+                .header("Content-Type","application/json")
+                .addHeader("Authorization", "key=AIzaSyBPy3oNqyoGWoATs5K6ovYES86m3A9n6i8")
+                .url("https://gcm-http.googleapis.com/gcm/send")
+                .post(requestBody)
+                .build();
+
+        OkHttpClient okHttpClient = new OkHttpClient();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+            }
+        });
+
+    }
+
+
+
     class GroupMessageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
         public GroupMessageRecyclerViewAdapter() {
@@ -172,7 +245,7 @@ public class GroupMessageActivity extends AppCompatActivity {
                 messageViewHolder.textView_message.setBackgroundResource(R.drawable.rightbubble);
                 messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE);  // 내꺼 프로필은 감추기
                 messageViewHolder.linearLayout_main.setGravity(Gravity.RIGHT);
-           //     setReadCount(position, messageViewHolder.textView_readCounter_left);
+                setReadCount(position, messageViewHolder.textView_readCounter_left);
 
             }else{ // 이건 상대방이 보낸 메시지
                 Glide.with(holder.itemView.getContext())
@@ -186,13 +259,46 @@ public class GroupMessageActivity extends AppCompatActivity {
                 messageViewHolder.textView_message.setTextSize(25);
                 messageViewHolder.linearLayout_main.setGravity(Gravity.LEFT);
 
-               // setReadCount(position, messageViewHolder.textView_readCounter_right);
+                setReadCount(position, messageViewHolder.textView_readCounter_right);
             }
             long unixTime = (long)comments.get(position).timestamp;
             Date date = new Date(unixTime);
             simpleDateFormat.setTimeZone(android.icu.util.TimeZone.getTimeZone("Asia/Seoul"));
             String time = simpleDateFormat.format(date);
             messageViewHolder.textView_timestamp.setText(time);
+        }
+
+
+        void setReadCount(final int position, final TextView textView){
+            if(peopleCount == 0) {
+                FirebaseDatabase.getInstance().getReference().child("chatrooms").child(destiantionRoom).child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Map<String, Boolean> users = (Map<String, Boolean>) dataSnapshot.getValue();
+                        peopleCount = users.size();
+                        int count = peopleCount - comments.get(position).readUsers.size();
+                        if (count > 0) {
+                            textView.setVisibility(View.VISIBLE);
+                            textView.setText(String.valueOf(count));
+                        } else {
+                            textView.setVisibility(View.INVISIBLE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }else{
+                int count = peopleCount - comments.get(position).readUsers.size();
+                if (count > 0) {
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText(String.valueOf(count));
+                } else {
+                    textView.setVisibility(View.INVISIBLE);
+                }
+            }
         }
 
         @Override
