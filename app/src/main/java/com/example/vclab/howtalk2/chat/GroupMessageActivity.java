@@ -1,16 +1,23 @@
 package com.example.vclab.howtalk2.chat;
 
+import android.icu.text.SimpleDateFormat;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.vclab.howtalk2.R;
 import com.example.vclab.howtalk2.model.ChatModel;
 import com.example.vclab.howtalk2.model.UserModel;
@@ -24,6 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +45,8 @@ public class GroupMessageActivity extends AppCompatActivity {
     String uid;
     EditText editText;
 
-    private UserModel destinationUserModel;
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm");
+
     private DatabaseReference databaseReference;
     private ValueEventListener valueEventListener;
 
@@ -56,9 +65,18 @@ public class GroupMessageActivity extends AppCompatActivity {
 
         FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                users = (Map<String, UserModel>) dataSnapshot.getValue();
+            public void onDataChange(DataSnapshot dataSnapshot) {    // 여러 데이터가 배열로 넘어온다.
+                // 유저에 대한 정보를 받아오기
+                for(DataSnapshot item: dataSnapshot.getChildren()){
+                    // 받아온 키 값을. Hash Map에 저장하고, Value 값을 받아와서 저장 하는 것.
+                    users.put(item.getKey(), item.getValue(UserModel.class));
+                }
+
                 init();
+                recyclerView = (RecyclerView)findViewById(R.id.groupMessageActivity_recyclerview);
+                // 어댑터와 recyclerview를 연결
+                recyclerView.setAdapter(new GroupMessageRecyclerViewAdapter());
+                recyclerView.setLayoutManager(new LinearLayoutManager(GroupMessageActivity.this));
             }
 
             @Override
@@ -66,10 +84,7 @@ public class GroupMessageActivity extends AppCompatActivity {
 
             }
         });
-        recyclerView = (RecyclerView)findViewById(R.id.groupMessageActivity_recyclerview);
-        // 어댑터와 recyclerview를 연결
-        recyclerView.setAdapter(new GroupMessageRecyclerViewAdapter());
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
     }
     void init(){
         Button button = (Button)findViewById(R.id.groupMessageActivity_button);
@@ -150,7 +165,34 @@ public class GroupMessageActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            GroupMessageViewHolder messageViewHolder = ((GroupMessageViewHolder)holder);
 
+            if(comments.get(position).uid.equals(uid)){ // 내가 쓴 말풍선과 상대방이 쓴 말풍선을 나눈 것.
+                messageViewHolder.textView_message.setText(comments.get(position).message);
+                messageViewHolder.textView_message.setBackgroundResource(R.drawable.rightbubble);
+                messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE);  // 내꺼 프로필은 감추기
+                messageViewHolder.linearLayout_main.setGravity(Gravity.RIGHT);
+           //     setReadCount(position, messageViewHolder.textView_readCounter_left);
+
+            }else{ // 이건 상대방이 보낸 메시지
+                Glide.with(holder.itemView.getContext())
+                        .load(users.get(comments.get(position).uid).profileImageUrl)
+                        .apply(new RequestOptions().circleCrop())
+                        .into(messageViewHolder.imageView);
+                messageViewHolder.textView_name.setText(users.get(comments.get(position).uid).userName);
+                messageViewHolder.linearLayout_destination.setVisibility(View.VISIBLE);
+                messageViewHolder.textView_message.setBackgroundResource(R.drawable.leftbubble);
+                messageViewHolder.textView_message.setText(comments.get(position).message);
+                messageViewHolder.textView_message.setTextSize(25);
+                messageViewHolder.linearLayout_main.setGravity(Gravity.LEFT);
+
+               // setReadCount(position, messageViewHolder.textView_readCounter_right);
+            }
+            long unixTime = (long)comments.get(position).timestamp;
+            Date date = new Date(unixTime);
+            simpleDateFormat.setTimeZone(android.icu.util.TimeZone.getTimeZone("Asia/Seoul"));
+            String time = simpleDateFormat.format(date);
+            messageViewHolder.textView_timestamp.setText(time);
         }
 
         @Override
@@ -160,8 +202,28 @@ public class GroupMessageActivity extends AppCompatActivity {
         }
 
         private class GroupMessageViewHolder extends RecyclerView.ViewHolder {
+
+            public TextView textView_message;
+            public TextView textView_name;
+            public ImageView imageView;
+            public LinearLayout linearLayout_destination;
+            public LinearLayout linearLayout_main;
+            public TextView textView_timestamp;
+            public TextView textView_readCounter_left;
+            public TextView textView_readCounter_right;
+
+
             public GroupMessageViewHolder(View view) {
                 super(view);
+
+                textView_message = (TextView)view.findViewById(R.id.messageitem_textview);
+                textView_name = (TextView)view.findViewById(R.id.message_textview_name);
+                imageView = (ImageView)view.findViewById(R.id.messageActivity_imageView_profile);
+                linearLayout_destination = (LinearLayout)view.findViewById(R.id.messageActivity_linearlayout_destination);
+                linearLayout_main = (LinearLayout)view.findViewById(R.id.messageItem_linearlayout_main);
+                textView_timestamp = (TextView)view.findViewById(R.id.messageItem_textview_timestamp);
+                textView_readCounter_left = (TextView)view.findViewById(R.id.messageItem_textview_readCounter_left);
+                textView_readCounter_right = (TextView)view.findViewById(R.id.messageItem_textview_readCounter_right);
             }
         }
     }
